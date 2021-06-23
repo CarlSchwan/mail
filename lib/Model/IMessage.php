@@ -132,6 +132,14 @@ interface IMessage {
 	public function addRawAttachment(string $name, string $content): void;
 
 	/**
+	 * @param string $name
+	 * @param string $content
+	 *
+	 * @return void
+	 */
+	public function addEmbeddedMessageAttachment(string $name, string $content): void;
+
+	/**
 	 * @param File $fileName
 	 */
 	public function addAttachmentFromFiles(File $fileName);
