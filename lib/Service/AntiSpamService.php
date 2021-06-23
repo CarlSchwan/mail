@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 /**
- * @author Tahaa Karim <tahaalibra@gmail.com>
+ * @copyright 2021 Anna Larch <anna@nextcloud.com>
+ *
+ * @author Anna Larch <anna@nextcloud.com>
  *
  * Mail
  *
@@ -50,12 +52,20 @@ class AntiSpamService {
 		$this->transmission = $transmission;
 	}
 
-	public function getReportEmail(): AddressList {
+	public function getReportEmailAdressList(): AddressList {
 		return AddressList::fromRow(['label' => '', 'email' => $this->config->getAppValue('mail', self::NAME)]);
+	}
+
+	public function getReportEmail(): String {
+		return $this->config->getAppValue('mail', self::NAME);
 	}
 
 	public function setReportEmail(string $email): void {
 		$this->config->setAppValue('mail', self::NAME, $email);
+	}
+
+	public function deleteConfig(): void {
+		$this->config->deleteAppValue('mail', self::NAME);
 	}
 
 	public function sendSpamReport(MessageFlaggedEvent $event): void {
@@ -67,7 +77,7 @@ class AntiSpamService {
 	private function createSpamMessageData(MessageFlaggedEvent$event, int $id): NewMessageData {
 		return new NewMessageData(
 			$event->getAccount(),
-			$this->getReportEmail(),
+			$this->getReportEmailAdressList(),
 			new AddressList([]),
 			new AddressList([]),
 			self::NAME,
