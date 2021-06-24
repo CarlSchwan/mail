@@ -116,7 +116,6 @@ class AntiSpamServiceTest extends TestCase {
 	}
 
 	public function testSendSpamReportServiceException() {
-		$account = $this->createMock(Account::class);
 		$messageData = $this->createMock(NewMessageData::class);
 
 		$this->transmission->expects($this->once())
@@ -129,7 +128,6 @@ class AntiSpamServiceTest extends TestCase {
 	}
 
 	public function testSendSpamReportSentMailboxNotSetException() {
-		$account = $this->createMock(Account::class);
 		$messageData = $this->createMock(NewMessageData::class);
 
 		$this->transmission->expects($this->once())
