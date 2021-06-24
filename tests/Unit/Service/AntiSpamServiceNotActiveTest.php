@@ -27,9 +27,7 @@ use ChristophWurst\Nextcloud\Testing\TestCase;
 use OCA\Mail\Account;
 use OCA\Mail\Contracts\IMailTransmission;
 use OCA\Mail\Db\MessageMapper;
-use OCA\Mail\Exception\ServiceException;
 use OCA\Mail\Db\Mailbox;
-use OCA\Mail\Model\NewMessageData;
 use OCA\Mail\Service\AntiSpamService;
 use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -64,20 +62,13 @@ class AntiSpamServiceNotActiveTest extends TestCase {
 		);
 	}
 
-	public function testCreateSpamReportMessageData() {
+	public function testSendSpamReport() {
 		$account = $this->createMock(Account::class);
 		$mailbox = $this->createMock(Mailbox::class);
 		$this->messageMapper->expects($this->never())
 			->method('getIdForUid');
-		$this->expectException(ServiceException::class);
-		$this->service->createSpamReportMessageData($account,$mailbox,1);
-	}
-
-	public function testSendSpamReport() {
-		$messageData = $this->createMock(NewMessageData::class);
 		$this->transmission->expects($this->never())
 			->method('sendMessage');
-		$this->expectException(ServiceException::class);
-		$this->service->sendSpamReport($messageData);
+		$this->service->sendSpamReport($account, $mailbox, 123);
 	}
 }

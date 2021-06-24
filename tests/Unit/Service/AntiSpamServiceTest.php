@@ -27,7 +27,6 @@ use ChristophWurst\Nextcloud\Testing\TestCase;
 use OCA\Mail\Account;
 use OCA\Mail\Contracts\IMailTransmission;
 use OCA\Mail\Db\MessageMapper;
-use OCA\Mail\Exception\SentMailboxNotSetException;
 use OCA\Mail\Exception\ServiceException;
 use OCA\Mail\Db\Mailbox;
 use OCA\Mail\Model\NewMessageData;
@@ -65,41 +64,24 @@ class AntiSpamServiceTest extends TestCase {
 		);
 	}
 
-	public function testCreateSpamReportMessageDataMessageNotFound() {
+	public function testSendSpamReportNoMessageFound() {
 		$account = $this->createMock(Account::class);
 		$mailbox = $this->createMock(Mailbox::class);
+
 		$this->messageMapper->expects($this->once())
 			->method('getIdForUid')
-			->with($mailbox, 1)
+			->with($mailbox, 123)
 			->willReturn(null);
 		$this->expectException(ServiceException::class);
-		$this->service->createSpamReportMessageData($account,$mailbox,1);
+		$this->transmission->expects($this->never())
+			->method('sendMessage');
+
+		$this->service->sendSpamReport($account, $mailbox, 123);
 	}
 
-	public function testCreateSpamReportMessageData() {
+	public function testSendSpamReportTransmissionError() {
 		$account = $this->createMock(Account::class);
 		$mailbox = $this->createMock(Mailbox::class);
-		$this->messageMapper->expects($this->once())
-			->method('getIdForUid')
-			->with($mailbox, 1)
-			->willReturn(1);
-
-		$expected = NewMessageData::fromRequest(
-			$account,
-			'test@test.com',
-			null,
-			null,
-			'antispam_reporting',
-			'',
-			[['id' => 1, 'type' => 'message/rfc822']],
-		);
-		$actual = $this->service->createSpamReportMessageData($account,$mailbox,1);
-
-		$this->assertEquals($expected,$actual);
-	}
-
-	public function testSendSpamReport() {
-		$account = $this->createMock(Account::class);
 		$messageData = NewMessageData::fromRequest(
 			$account,
 			'test@test.com',
@@ -107,35 +89,43 @@ class AntiSpamServiceTest extends TestCase {
 			null,
 			'antispam_reporting',
 			'',
-			[['id' => 1, 'type' => 'message/rfc822']],
+			[['id' => 123, 'type' => 'message/rfc822']],
 		);
-		$this->transmission->expects($this->once())
-			->method('sendMessage')
-			->with($messageData);
-		$this->service->sendSpamReport($messageData);
-	}
 
-	public function testSendSpamReportServiceException() {
-		$messageData = $this->createMock(NewMessageData::class);
-
+		$this->messageMapper->expects($this->once())
+			->method('getIdForUid')
+			->with($mailbox, 123)
+			->willReturn(123);
 		$this->transmission->expects($this->once())
 			->method('sendMessage')
 			->with($messageData)
 			->willThrowException(new ServiceException());
 		$this->expectException(ServiceException::class);
 
-		$this->service->sendSpamReport($messageData);
+		$this->service->sendSpamReport($account, $mailbox, 123);
 	}
 
-	public function testSendSpamReportSentMailboxNotSetException() {
-		$messageData = $this->createMock(NewMessageData::class);
+	public function testSendSpamReport() {
+		$account = $this->createMock(Account::class);
+		$mailbox = $this->createMock(Mailbox::class);
+		$messageData = NewMessageData::fromRequest(
+			$account,
+			'test@test.com',
+			null,
+			null,
+			'antispam_reporting',
+			'',
+			[['id' => 123, 'type' => 'message/rfc822']],
+		);
 
+		$this->messageMapper->expects($this->once())
+			->method('getIdForUid')
+			->with($mailbox, 123)
+			->willReturn(123);
 		$this->transmission->expects($this->once())
 			->method('sendMessage')
-			->with($messageData)
-			->willThrowException(new SentMailboxNotSetException());
-		$this->expectException(ServiceException::class);
+			->with($messageData);
 
-		$this->service->sendSpamReport($messageData);
+		$this->service->sendSpamReport($account, $mailbox, 123);
 	}
 }

@@ -77,31 +77,15 @@ class AntiSpamService {
 	}
 
 	/**
-	 * @param NewMessageData $messageData
-	 * @throws ServiceException
-	 */
-	public function sendSpamReport(NewMessageData $messageData): void {
-		if (empty($this->getReportEmail())) {
-			throw new ServiceException('Antispam service email not configured');
-		}
-
-		try {
-			$this->transmission->sendMessage($messageData);
-		} catch (SentMailboxNotSetException | ServiceException $e) {
-			throw new ServiceException('Could not send spam report', 0, $e);
-		}
-	}
-
-	/**
 	 * @param Account $account
 	 * @param Mailbox $mailbox
 	 * @param int $uid
-	 * @return NewMessageData
 	 * @throws ServiceException
 	 */
-	public function createSpamReportMessageData(Account $account, Mailbox $mailbox, int $uid): NewMessageData {
+	public function sendSpamReport(Account $account, Mailbox $mailbox, int $uid): void {
 		if (empty($this->getReportEmail())) {
-			throw new ServiceException('Antispam service email not configured');
+			// fail silently
+			return;
 		}
 
 		$attachedMessageId = $this->messageMapper->getIdForUid($mailbox, $uid);
@@ -109,7 +93,7 @@ class AntiSpamService {
 			throw new ServiceException('Could not find reported message');
 		}
 
-		return NewMessageData::fromRequest(
+		$messageData = NewMessageData::fromRequest(
 			$account,
 			$this->config->getAppValue('mail', self::NAME),
 			null,
@@ -118,5 +102,11 @@ class AntiSpamService {
 			'',
 			[['id' => $attachedMessageId, 'type' => self::MESSAGE_TYPE]],
 		);
+
+		try {
+			$this->transmission->sendMessage($messageData);
+		} catch (SentMailboxNotSetException | ServiceException $e) {
+			throw new ServiceException('Could not send spam report', 0, $e);
+		}
 	}
 }

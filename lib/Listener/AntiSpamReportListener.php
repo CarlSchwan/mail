@@ -59,8 +59,7 @@ class AntiSpamReportListener implements IEventListener {
 
 			//Send message to reporting service
 			try {
-				$message = $this->service->createSpamReportMessageData($event->getAccount(), $event->getMailbox(), $event->getUid());
-				$this->service->sendSpamReport($message);
+				$this->service->sendSpamReport($event->getAccount(), $event->getMailbox(), $event->getUid());
 			} catch (ServiceException $e) {
 				$this->logger->error($e->getMessage(), ['exception' => $e]);
 			}
