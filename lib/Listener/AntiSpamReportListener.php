@@ -25,35 +25,24 @@ declare(strict_types=1);
 
 namespace OCA\Mail\Listener;
 
-use OCA\Mail\Db\MessageMapper;
 use OCA\Mail\Events\MessageFlaggedEvent;
+use OCA\Mail\Exception\ServiceException;
 use OCA\Mail\Service\AntiSpamService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\Mail\IMailer;
 use Psr\Log\LoggerInterface;
 
 class AntiSpamReportListener implements IEventListener {
 
-	/** @var MessageMapper */
-	private $mapper;
-
 	/** @var LoggerInterface */
 	private $logger;
-
-	/** @var IMailer */
-	private $mailer;
 
 	/** @var AntiSpamService */
 	private $service;
 
-	public function __construct(MessageMapper $mapper,
-								IMailer $mailer,
-								LoggerInterface $logger,
+	public function __construct(LoggerInterface $logger,
 								AntiSpamService $service) {
-		$this->mapper = $mapper;
 		$this->logger = $logger;
-		$this->mailer = $mailer;
 		$this->service = $service;
 	}
 
@@ -63,17 +52,18 @@ class AntiSpamReportListener implements IEventListener {
 				return;
 			}
 
-			$email = $this->service->getReportEmail();
-
 			// No anti spam config found
-			if (empty($email)) {
+			if (empty($this->service->getReportEmail())) {
 				return;
 			}
 
 			//Send message to reporting service
-			$this->service->sendSpamReport(
-				$event
-			);
+			try {
+				$message = $this->service->createSpamReportMessageData($event->getAccount(), $event->getMailbox(), $event->getUid());
+				$this->service->sendSpamReport($message);
+			} catch (ServiceException $e) {
+				$this->logger->error($e->getMessage(), [$e]);
+			}
 		}
 	}
 }

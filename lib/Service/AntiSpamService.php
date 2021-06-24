@@ -25,15 +25,18 @@ declare(strict_types=1);
 
 namespace OCA\Mail\Service;
 
-use OCA\Mail\AddressList;
+use OCA\Mail\Account;
 use OCA\Mail\Contracts\IMailTransmission;
-use OCA\Mail\Events\MessageFlaggedEvent;
 use OCA\Mail\Db\MessageMapper;
+use OCA\Mail\Exception\SentMailboxNotSetException;
+use OCA\Mail\Exception\ServiceException;
+use OCA\Mail\Db\Mailbox;
 use OCA\Mail\Model\NewMessageData;
 use OCP\IConfig;
 
 class AntiSpamService {
-	public const NAME = 'spamreport';
+	public const NAME = 'antispam_reporting';
+	public const MESSAGE_TYPE = 'message/rfc822';
 
 	/** @var IConfig */
 	private $config;
@@ -52,39 +55,64 @@ class AntiSpamService {
 		$this->transmission = $transmission;
 	}
 
-	public function getReportEmailAdressList(): AddressList {
-		return AddressList::fromRow(['label' => '', 'email' => $this->config->getAppValue('mail', self::NAME)]);
-	}
-
-	public function getReportEmail(): String {
+	/**
+	 * @codeCoverageIgnore
+	 */
+	public function getReportEmail(): string {
 		return $this->config->getAppValue('mail', self::NAME);
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function setReportEmail(string $email): void {
 		$this->config->setAppValue('mail', self::NAME, $email);
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function deleteConfig(): void {
 		$this->config->deleteAppValue('mail', self::NAME);
 	}
 
-	public function sendSpamReport(MessageFlaggedEvent $event): void {
-		$attachmentMessageId = $this->messageMapper->getIdForUid($event->getMailbox(), $event->getUid());
-		$messageData = $this->createSpamMessageData($event, $attachmentMessageId);
-		$this->transmission->sendMessage($messageData);
+	/**
+	 * @param NewMessageData $messageData
+	 * @throws ServiceException
+	 */
+	public function sendSpamReport(NewMessageData $messageData): void {
+		if ($this->getReportEmail() === null) {
+			throw new ServiceException('Antispam service email not configured', 0, []);
+		}
+
+		try {
+			$this->transmission->sendMessage($messageData);
+		} catch (SentMailboxNotSetException | ServiceException $e) {
+			throw new ServiceException('Could not send spam report', 0, $e);
+		}
 	}
 
-	private function createSpamMessageData(MessageFlaggedEvent$event, int $id): NewMessageData {
-		return new NewMessageData(
-			$event->getAccount(),
-			$this->getReportEmailAdressList(),
-			new AddressList([]),
-			new AddressList([]),
+	/**
+	 * @param Account $account
+	 * @param Mailbox $mailbox
+	 * @param int $uid
+	 * @return NewMessageData
+	 * @throws ServiceException
+	 */
+	public function createSpamReportMessageData(Account $account, Mailbox $mailbox, int $uid): NewMessageData {
+		$attachedMessageId = $this->messageMapper->getIdForUid($mailbox, $uid);
+		if ($attachedMessageId === null) {
+			throw new ServiceException('Could not find reported message', 0, []);
+		}
+
+		return NewMessageData::fromRequest(
+			$account,
+			$this->config->getAppValue('mail', self::NAME),
+			null,
+			null,
 			self::NAME,
-			'', // no content needed since it's only going to an automated spam service
-			[['id' => $id, 'type' => 'message/rfc822']],
-			false,
-			false
+			'',
+			[['id' => $attachedMessageId, 'type' => self::MESSAGE_TYPE]],
 		);
 	}
 }
