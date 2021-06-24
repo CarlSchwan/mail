@@ -81,8 +81,8 @@ class AntiSpamService {
 	 * @throws ServiceException
 	 */
 	public function sendSpamReport(NewMessageData $messageData): void {
-		if ($this->getReportEmail() === null) {
-			throw new ServiceException('Antispam service email not configured', 0, []);
+		if (empty($this->getReportEmail())) {
+			throw new ServiceException('Antispam service email not configured');
 		}
 
 		try {
@@ -100,9 +100,13 @@ class AntiSpamService {
 	 * @throws ServiceException
 	 */
 	public function createSpamReportMessageData(Account $account, Mailbox $mailbox, int $uid): NewMessageData {
+		if (empty($this->getReportEmail())) {
+			throw new ServiceException('Antispam service email not configured');
+		}
+
 		$attachedMessageId = $this->messageMapper->getIdForUid($mailbox, $uid);
 		if ($attachedMessageId === null) {
-			throw new ServiceException('Could not find reported message', 0, []);
+			throw new ServiceException('Could not find reported message');
 		}
 
 		return NewMessageData::fromRequest(
