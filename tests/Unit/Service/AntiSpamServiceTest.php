@@ -98,7 +98,7 @@ class AntiSpamServiceTest extends TestCase {
 		$this->assertEquals($expected,$actual);
 	}
 
-	public function testSendSpamReport(){
+	public function testSendSpamReport() {
 		$account = $this->createMock(Account::class);
 		$messageData = NewMessageData::fromRequest(
 			$account,
@@ -115,7 +115,7 @@ class AntiSpamServiceTest extends TestCase {
 		$this->service->sendSpamReport($messageData);
 	}
 
-	public function testSendSpamReportServiceException(){
+	public function testSendSpamReportServiceException() {
 		$account = $this->createMock(Account::class);
 		$messageData = $this->createMock(NewMessageData::class);
 
@@ -128,7 +128,7 @@ class AntiSpamServiceTest extends TestCase {
 		$this->service->sendSpamReport($messageData);
 	}
 
-	public function testSendSpamReportSentMailboxNotSetException(){
+	public function testSendSpamReportSentMailboxNotSetException() {
 		$account = $this->createMock(Account::class);
 		$messageData = $this->createMock(NewMessageData::class);
 
