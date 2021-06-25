@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.x-dev@">
   <file src="lib/AppInfo/Application.php">
-    <MissingDependency occurrences="12">
+    <MissingDependency occurrences="13">
       <code>DraftSavedEvent</code>
       <code>MailboxesSynchronizedEvent</code>
       <code>MessageDeletedEvent</code>
+      <code>MessageFlaggedEvent</code>
       <code>MessageFlaggedEvent</code>
       <code>MessageSentEvent</code>
       <code>MessageSentEvent</code>
@@ -112,13 +113,14 @@
       <code>$qb-&gt;createNamedParameter($query-&gt;getTo(), IQueryBuilder::PARAM_STR_ARRAY)</code>
       <code>$qb-&gt;createNamedParameter($uids, IQueryBuilder::PARAM_INT_ARRAY)</code>
       <code>$qb-&gt;createParameter('ids')</code>
-      <code>$qb-&gt;createParameter('ids')</code>
       <code>$qb-&gt;createParameter('uids')</code>
       <code>$qb-&gt;createParameter('uids')</code>
       <code>$qb2-&gt;createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)</code>
       <code>$qb2-&gt;createNamedParameter(array_keys($indexedMessages), IQueryBuilder::PARAM_INT_ARRAY)</code>
       <code>$qb4-&gt;createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)</code>
       <code>$query-&gt;createParameter('ids')</code>
+      <code>$select-&gt;createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)</code>
+      <code>$select-&gt;createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)</code>
     </ImplicitToStringCast>
   </file>
   <file src="lib/Db/StatisticsDao.php">
@@ -200,6 +202,12 @@
     <MissingDependency occurrences="2">
       <code>AddressCollectionListener</code>
       <code>MessageSentEvent</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Listener/AntiSpamReportListener.php">
+    <MissingDependency occurrences="2">
+      <code>AntiSpamReportListener</code>
+      <code>MessageFlaggedEvent</code>
     </MissingDependency>
   </file>
   <file src="lib/Listener/DashboardPanelListener.php">

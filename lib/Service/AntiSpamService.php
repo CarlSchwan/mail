@@ -100,7 +100,7 @@ class AntiSpamService {
 			null,
 			self::NAME,
 			'',
-			[['id' => $attachedMessageId, 'type' => self::MESSAGE_TYPE]],
+			[['id' => $attachedMessageId, 'type' => self::MESSAGE_TYPE]]
 		);
 
 		try {
