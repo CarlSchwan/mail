@@ -89,7 +89,7 @@ class AntiSpamServiceTest extends TestCase {
 			null,
 			'antispam_reporting',
 			'',
-			[['id' => 123, 'type' => 'message/rfc822']],
+			[['id' => 123, 'type' => 'message/rfc822']]
 		);
 
 		$this->messageMapper->expects($this->once())
@@ -115,7 +115,7 @@ class AntiSpamServiceTest extends TestCase {
 			null,
 			'antispam_reporting',
 			'',
-			[['id' => 123, 'type' => 'message/rfc822']],
+			[['id' => 123, 'type' => 'message/rfc822']]
 		);
 
 		$this->messageMapper->expects($this->once())
