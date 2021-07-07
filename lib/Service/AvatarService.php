@@ -31,6 +31,7 @@ use OCA\Mail\Service\Avatar\Cache as AvatarCache;
 use OCA\Mail\Service\Avatar\CompositeAvatarSource;
 use OCA\Mail\Service\Avatar\Downloader;
 use OCP\IURLGenerator;
+use OCP\IUser;
 
 class AvatarService implements IAvatarService {
 
@@ -52,6 +53,9 @@ class AvatarService implements IAvatarService {
 	/** @var IUserPreferences */
 	private $preferences;
 
+	/** @var IUser */
+	private $user;
+
 	/**
 	 * @param CompositeAvatarSource $source
 	 * @param Downloader $downloader
@@ -65,20 +69,22 @@ class AvatarService implements IAvatarService {
 								AvatarCache $cache,
 								IURLGenerator $urlGenerator,
 								AvatarFactory $avatarFactory,
-								IUserPreferences $preferences) {
+								IUserPreferences $preferences,
+								IUser $user) {
 		$this->source = $source;
 		$this->cache = $cache;
 		$this->urlGenerator = $urlGenerator;
 		$this->downloader = $downloader;
 		$this->avatarFactory = $avatarFactory;
 		$this->preferences = $preferences;
+		$this->user = $user;
 	}
 
 	/**
 	 * @return bool
 	 */
 	private function externalAvatarsAllowed(): bool {
-		return $this->preferences->getPreference('external-avatars', 'true') === 'true';
+		return $this->preferences->getPreference($this->user->getUID(), 'external-avatars', 'true') === 'true';
 	}
 
 	/**
